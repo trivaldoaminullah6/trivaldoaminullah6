@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trivaldo Aminullah - Retro Space Invaders</title>
+  <title>Trivaldo Aminullah - Retro Pixel Highway</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
@@ -33,7 +33,7 @@
     }
     canvas {
       display: block;
-      background: #050714;
+      background: #0a0d14;
     }
     #ui-overlay {
       position: absolute;
@@ -45,21 +45,21 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(5, 7, 20, 0.85);
+      background: rgba(5, 7, 20, 0.88);
       text-align: center;
       padding: 20px;
     }
     h1 {
       font-size: 20px;
       color: #00ffcc;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       text-shadow: 0 0 10px #00ffcc;
     }
     p {
       font-size: 10px;
       color: #94a3b8;
       line-height: 1.8;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
     .btn {
       font-family: 'Press Start 2P', monospace;
@@ -85,7 +85,6 @@
       font-size: 9px;
       color: #64748b;
     }
-    /* Mobile Touch Controls */
     #touch-controls {
       display: none;
       margin-top: 15px;
@@ -116,28 +115,29 @@
 <body>
 
   <div id="game-container">
-    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <canvas id="gameCanvas" width="600" height="500"></canvas>
 
     <div id="ui-overlay">
-      <h1 id="overlay-title">SPACE DEFENDER</h1>
-      <p id="overlay-sub">PILOT: TRIVALDO AMINULLAH<br>DEFEND THE CYBER GALAXY!</p>
-      <button class="btn" id="start-btn">START MISSION</button>
+      <h1 id="overlay-title">RETRO PIXEL HIGHWAY</h1>
+      <p id="overlay-sub">DRIVER: TRIVALDO AMINULLAH<br>DODGE TRAFFIC &amp; SURVIVE THE HIGHWAY</p>
+      <button class="btn" id="start-btn">START RACE</button>
       <p style="margin-top: 25px; font-size: 8px; color: #475569;">
-        [◀ / ▶] MOVE &nbsp;|&nbsp; [SPACE] FIRE LASERS
+        [◀ / ▶] STEER &nbsp;|&nbsp; [▲] ACCEL &nbsp;|&nbsp; [SPACE] NITRO
       </p>
     </div>
   </div>
 
   <div class="controls-bar">
-    <span>[← / A] LEFT</span>
-    <span>[→ / D] RIGHT</span>
-    <span>[SPACE] SHOOT</span>
-    <span>[M] MUTE AUDIO</span>
+    <span>[← / A] STEER LEFT</span>
+    <span>[→ / D] STEER RIGHT</span>
+    <span>[↑ / W] GAS</span>
+    <span>[SPACE] NITRO BOOST</span>
+    <span>[M] MUTE</span>
   </div>
 
   <div id="touch-controls">
     <button class="touch-btn" id="btn-left">◀</button>
-    <button class="touch-btn" id="btn-fire" style="background: rgba(255, 0, 85, 0.3); border-color: #ff0055; width: 70px; height: 70px;">⚡</button>
+    <button class="touch-btn" id="btn-nitro" style="background: rgba(0, 255, 204, 0.3); border-color: #00ffcc; width: 65px; height: 65px;">⚡</button>
     <button class="touch-btn" id="btn-right">▶</button>
   </div>
 
@@ -149,11 +149,11 @@
     const overlayTitle = document.getElementById('overlay-title');
     const overlaySub = document.getElementById('overlay-sub');
 
-    // Web Audio Synthesizer (No external mp3)
+    // Web Audio Synthesizer
     let audioCtx = null;
     let soundEnabled = true;
 
-    function playTone(freq, type, duration) {
+    function playTone(freq, type, duration, vol = 0.08) {
       if (!soundEnabled) return;
       try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -161,7 +161,7 @@
         const gain = audioCtx.createGain();
         osc.type = type;
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -170,121 +170,95 @@
       } catch (e) {}
     }
 
-    function soundShoot() { playTone(880, 'square', 0.1); }
-    function soundHit() { playTone(220, 'sawtooth', 0.15); }
-    function soundOver() { playTone(120, 'sine', 0.6); }
+    function soundEngine() { playTone(80 + Math.random() * 40, 'triangle', 0.08, 0.03); }
+    function soundNitro() { playTone(240, 'sawtooth', 0.15, 0.06); }
+    function soundCrash() { playTone(60, 'sawtooth', 0.4, 0.2); }
 
-    // State
-    let gameState = 'START'; // START, PLAYING, GAMEOVER
+    // Game State
+    let gameState = 'START';
     let score = 0;
-    let lives = 3;
-    let wave = 1;
+    let distance = 0;
+    let speed = 0;
+    const maxNormalSpeed = 160;
+    const maxNitroSpeed = 240;
 
     // Keys
-    const keys = { left: false, right: false, space: false };
+    const keys = { left: false, right: false, up: false, space: false };
 
     window.addEventListener('keydown', e => {
       if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
       if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
-      if (e.code === 'Space') {
-        keys.space = true;
-        if (gameState === 'PLAYING') shootLaser();
-        e.preventDefault();
-      }
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = true;
+      if (e.code === 'Space') keys.space = true;
       if (e.code === 'KeyM') soundEnabled = !soundEnabled;
     });
 
     window.addEventListener('keyup', e => {
       if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
       if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = false;
       if (e.code === 'Space') keys.space = false;
     });
 
-    // Touch controls
-    document.getElementById('btn-left').addEventListener('touchstart', (e) => { e.preventDefault(); keys.left = true; });
+    // Touch
+    document.getElementById('btn-left').addEventListener('touchstart', e => { e.preventDefault(); keys.left = true; });
     document.getElementById('btn-left').addEventListener('touchend', () => { keys.left = false; });
-    document.getElementById('btn-right').addEventListener('touchstart', (e) => { e.preventDefault(); keys.right = true; });
+    document.getElementById('btn-right').addEventListener('touchstart', e => { e.preventDefault(); keys.right = true; });
     document.getElementById('btn-right').addEventListener('touchend', () => { keys.right = false; });
-    document.getElementById('btn-fire').addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      if (gameState === 'PLAYING') shootLaser();
-    });
+    document.getElementById('btn-nitro').addEventListener('touchstart', e => { e.preventDefault(); keys.space = true; });
+    document.getElementById('btn-nitro').addEventListener('touchend', () => { keys.space = false; });
 
-    // Starfield Background
-    const stars = Array.from({ length: 60 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      speed: 0.5 + Math.random() * 2,
-      size: Math.random() > 0.8 ? 2 : 1
-    }));
+    // Highway Road Config
+    const roadX = 90;
+    const roadWidth = 420;
+    const lanes = [roadX + 35, roadX + 135, roadX + 245, roadX + 345];
+    let roadOffset = 0;
 
-    // Player
+    // Player Car
     const player = {
       x: canvas.width / 2 - 18,
-      y: canvas.height - 50,
+      y: canvas.height - 90,
       w: 36,
-      h: 24,
-      speed: 5
+      h: 64,
+      vx: 0
     };
 
-    let lasers = [];
-    let enemyLasers = [];
-    let enemies = [];
+    // Traffic Cars
+    let traffic = [];
     let particles = [];
+    let nitroFuel = 100;
 
-    function initEnemies() {
-      enemies = [];
-      const rows = 4;
-      const cols = 8;
-      const xOffset = 60;
-      const yOffset = 50;
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          enemies.push({
-            x: xOffset + c * 60,
-            y: yOffset + r * 35,
-            w: 28,
-            h: 20,
-            color: r === 0 ? '#ff00aa' : r < 3 ? '#00ff88' : '#ffcc00',
-            alive: true
-          });
-        }
-      }
-    }
-
-    let enemyDir = 1;
-    let enemyStepDown = false;
-    let lastEnemyShoot = 0;
-
-    function shootLaser() {
-      if (lasers.length < 5) {
-        lasers.push({ x: player.x + player.w / 2 - 2, y: player.y - 4, w: 4, h: 12, speed: 8 });
-        soundShoot();
-      }
-    }
-
-    function createExplosion(x, y, color) {
-      for (let i = 0; i < 15; i++) {
-        particles.push({
-          x, y,
-          vx: (Math.random() - 0.5) * 6,
-          vy: (Math.random() - 0.5) * 6,
-          life: 25,
-          color
+    function spawnTraffic() {
+      const lane = lanes[Math.floor(Math.random() * lanes.length)];
+      // Prevent overlapping spawns
+      const busy = traffic.some(t => Math.abs(t.x - lane) < 20 && t.y < 80);
+      if (!busy) {
+        const types = [
+          { color: '#facc15', speed: 2 + Math.random() * 2 },
+          { color: '#0284c7', speed: 3 + Math.random() * 2 },
+          { color: '#7c3aed', speed: 1.5 + Math.random() * 1.5 }
+        ];
+        const chosen = types[Math.floor(Math.random() * types.length)];
+        traffic.push({
+          x: lane,
+          y: -80,
+          w: 34,
+          h: 58,
+          color: chosen.color,
+          speed: chosen.speed
         });
       }
-      soundHit();
     }
 
     function resetGame() {
       score = 0;
-      lives = 3;
-      wave = 1;
+      distance = 0;
+      speed = 60;
+      nitroFuel = 100;
       player.x = canvas.width / 2 - 18;
-      lasers = [];
-      enemyLasers = [];
+      player.vx = 0;
+      traffic = [];
       particles = [];
-      initEnemies();
     }
 
     startBtn.addEventListener('click', () => {
@@ -296,102 +270,87 @@
 
     function gameOver() {
       gameState = 'GAMEOVER';
-      soundOver();
-      overlayTitle.innerText = 'MISSION FAILED';
-      overlayTitle.style.color = '#ff0055';
-      overlaySub.innerHTML = `FINAL SCORE: ${score}<br>WAVE REACHED: ${wave}`;
-      startBtn.innerText = 'PLAY AGAIN';
+      soundCrash();
+      overlayTitle.innerText = 'CRASH!';
+      overlayTitle.style.color = '#ef4444';
+      overlaySub.innerHTML = `DISTANCE: ${Math.floor(distance)} KM<br>SCORE: ${score}`;
+      startBtn.innerText = 'RACE AGAIN';
       uiOverlay.style.display = 'flex';
     }
 
-    // Main Loop
-    function update() {
-      // Move Stars
-      stars.forEach(s => {
-        s.y += s.speed;
-        if (s.y > canvas.height) {
-          s.y = 0;
-          s.x = Math.random() * canvas.width;
-        }
-      });
+    // Main Update Loop
+    let lastSpawn = 0;
 
+    function update() {
       if (gameState !== 'PLAYING') return;
 
+      // Speed handling
+      let targetSpeed = keys.up ? maxNormalSpeed : 100;
+      let isNitro = false;
+
+      if (keys.space && nitroFuel > 0) {
+        targetSpeed = maxNitroSpeed;
+        nitroFuel -= 0.6;
+        isNitro = true;
+        if (Math.random() > 0.4) soundNitro();
+      } else if (nitroFuel < 100) {
+        nitroFuel += 0.15;
+      }
+
+      speed += (targetSpeed - speed) * 0.05;
+      distance += speed * 0.0008;
+      score += Math.floor(speed * 0.04);
+      roadOffset = (roadOffset + speed * 0.12) % 60;
+
       // Player Movement
-      if (keys.left && player.x > 5) player.x -= player.speed;
-      if (keys.right && player.x < canvas.width - player.w - 5) player.x += player.speed;
+      if (keys.left) player.vx = -5;
+      else if (keys.right) player.vx = 5;
+      else player.vx *= 0.7;
 
-      // Lasers Move
-      lasers.forEach(l => l.y -= l.speed);
-      lasers = lasers.filter(l => l.y > -10);
+      player.x += player.vx;
+      if (player.x < roadX + 8) player.x = roadX + 8;
+      if (player.x > roadX + roadWidth - player.w - 8) player.x = roadX + roadWidth - player.w - 8;
 
-      // Enemy Lasers Move
-      enemyLasers.forEach(el => el.y += el.speed);
-      enemyLasers = enemyLasers.filter(el => el.y < canvas.height + 10);
+      // Engine audio tick
+      if (Math.random() > 0.7) soundEngine();
 
-      // Enemy Movement
-      let hitEdge = false;
-      const aliveEnemies = enemies.filter(e => e.alive);
-
-      if (aliveEnemies.length === 0) {
-        wave++;
-        initEnemies();
-        return;
-      }
-
-      aliveEnemies.forEach(e => {
-        if ((enemyDir === 1 && e.x + e.w > canvas.width - 20) || (enemyDir === -1 && e.x < 20)) {
-          hitEdge = true;
-        }
-      });
-
-      if (hitEdge) {
-        enemyDir *= -1;
-        aliveEnemies.forEach(e => e.y += 12);
-      } else {
-        aliveEnemies.forEach(e => e.x += enemyDir * (1 + wave * 0.3));
-      }
-
-      // Enemy Shooting
+      // Spawn traffic
       const now = Date.now();
-      if (now - lastEnemyShoot > Math.max(500, 1500 - wave * 100)) {
-        const shooter = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
-        if (shooter) {
-          enemyLasers.push({ x: shooter.x + shooter.w / 2, y: shooter.y + shooter.h, w: 3, h: 10, speed: 4 });
-          lastEnemyShoot = now;
-        }
+      if (now - lastSpawn > Math.max(700, 2200 - speed * 8)) {
+        spawnTraffic();
+        lastSpawn = now;
       }
 
-      // Collisions: Player Lasers -> Enemies
-      lasers.forEach((l, lIdx) => {
-        aliveEnemies.forEach(e => {
-          if (l.x < e.x + e.w && l.x + l.w > e.x && l.y < e.y + e.h && l.y + l.h > e.y) {
-            e.alive = false;
-            lasers.splice(lIdx, 1);
-            score += 100;
-            createExplosion(e.x + e.w / 2, e.y + e.h / 2, e.color);
-          }
-        });
+      // Update traffic
+      traffic.forEach(t => {
+        // Relative speed
+        t.y += (speed * 0.06 - t.speed);
       });
+      traffic = traffic.filter(t => t.y < canvas.height + 100 && t.y > -150);
 
-      // Collisions: Enemy Lasers -> Player
-      enemyLasers.forEach((el, elIdx) => {
-        if (el.x < player.x + player.w && el.x + el.w > player.x && el.y < player.y + player.h && el.y + el.h > player.y) {
-          enemyLasers.splice(elIdx, 1);
-          lives--;
-          createExplosion(player.x + player.w / 2, player.y + player.h / 2, '#00ffff');
-          if (lives <= 0) gameOver();
-        }
-      });
-
-      // Enemy reaching bottom
-      aliveEnemies.forEach(e => {
-        if (e.y + e.h >= player.y) {
+      // Collisions
+      traffic.forEach(t => {
+        if (
+          player.x < t.x + t.w - 4 &&
+          player.x + player.w > t.x + 4 &&
+          player.y < t.y + t.h - 6 &&
+          player.y + player.h > t.y + 6
+        ) {
           gameOver();
         }
       });
 
-      // Particles
+      // Tire smoke & Nitro flames particles
+      if (isNitro || Math.abs(player.vx) > 3) {
+        particles.push({
+          x: player.x + 8 + Math.random() * (player.w - 16),
+          y: player.y + player.h,
+          vx: (Math.random() - 0.5) * 2,
+          vy: 2 + Math.random() * 3,
+          life: 15,
+          color: isNitro ? (Math.random() > 0.5 ? '#00f5ff' : '#ff0055') : '#64748b'
+        });
+      }
       particles.forEach(p => {
         p.x += p.vx;
         p.y += p.vy;
@@ -403,59 +362,101 @@
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Stars
-      ctx.fillStyle = '#ffffff';
-      stars.forEach(s => {
-        ctx.fillRect(s.x, s.y, s.size, s.size);
-      });
+      // Grass / Sidewalks
+      ctx.fillStyle = '#050711';
+      ctx.fillRect(0, 0, roadX, canvas.height);
+      ctx.fillRect(roadX + roadWidth, 0, canvas.width - (roadX + roadWidth), canvas.height);
 
-      // Player Ship (Pixel Art Style)
-      ctx.fillStyle = '#00ffff';
-      ctx.fillRect(player.x, player.y + 12, player.w, 10); // Base wings
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(player.x + 12, player.y, 12, 20); // Hull
-      ctx.fillStyle = '#ff0055';
-      ctx.fillRect(player.x + 16, player.y + 4, 4, 8); // Cockpit
+      // Asphalt Road
+      ctx.fillStyle = '#111827';
+      ctx.fillRect(roadX, 0, roadWidth, canvas.height);
 
-      // Jet Flames
-      if (gameState === 'PLAYING') {
-        ctx.fillStyle = Math.random() > 0.5 ? '#ffaa00' : '#ff3300';
-        ctx.fillRect(player.x + 14, player.y + 22, 8, 8 + Math.random() * 6);
+      // Curbs (Striped Red & White)
+      const curbSize = 30;
+      for (let y = -curbSize; y < canvas.height + curbSize; y += curbSize) {
+        const isRed = Math.floor((y + roadOffset) / curbSize) % 2 === 0;
+        ctx.fillStyle = isRed ? '#ef4444' : '#ffffff';
+        ctx.fillRect(roadX - 8, y + roadOffset, 8, curbSize);
+        ctx.fillRect(roadX + roadWidth, y + roadOffset, 8, curbSize);
       }
 
-      // Lasers
-      ctx.fillStyle = '#00ffcc';
-      lasers.forEach(l => ctx.fillRect(l.x, l.y, l.w, l.h));
-
-      // Enemy Lasers
-      ctx.fillStyle = '#ff0055';
-      enemyLasers.forEach(el => ctx.fillRect(el.x, el.y, el.w, el.h));
-
-      // Enemies
-      enemies.forEach(e => {
-        if (!e.alive) return;
-        ctx.fillStyle = e.color;
-        // Simple Pixel Invader Shape
-        ctx.fillRect(e.x + 4, e.y, e.w - 8, e.h);
-        ctx.fillRect(e.x, e.y + 4, e.w, e.h - 8);
-        ctx.fillStyle = '#050714';
-        ctx.fillRect(e.x + 6, e.y + 6, 4, 4); // Eyes
-        ctx.fillRect(e.x + e.w - 10, e.y + 6, 4, 4);
+      // Dashed Lane Dividers
+      const dashH = 26;
+      const gapH = 24;
+      ctx.fillStyle = '#facc15';
+      [roadX + 105, roadX + 210, roadX + 315].forEach(lx => {
+        for (let y = -dashH; y < canvas.height + dashH; y += dashH + gapH) {
+          ctx.fillRect(lx, y + (roadOffset % (dashH + gapH)), 4, dashH);
+        }
       });
 
       // Particles
       particles.forEach(p => {
         ctx.fillStyle = p.color;
-        ctx.fillRect(p.x, p.y, 3, 3);
+        ctx.fillRect(p.x, p.y, 4, 4);
       });
 
-      // HUD
+      // Traffic Cars
+      traffic.forEach(t => {
+        // Shadow
+        ctx.fillStyle = '#00000066';
+        ctx.fillRect(t.x + 2, t.y + 4, t.w, t.h);
+        // Body
+        ctx.fillStyle = t.color;
+        ctx.fillRect(t.x, t.y, t.w, t.h);
+        // Windshield
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(t.x + 4, t.y + 12, t.w - 8, 12);
+        ctx.fillRect(t.x + 4, t.y + t.h - 18, t.w - 8, 8);
+        // Taillights
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(t.x + 4, t.y + t.h - 3, 6, 3);
+        ctx.fillRect(t.x + t.w - 10, t.y + t.h - 3, 6, 3);
+      });
+
+      // Player Car (Red Sports Car)
+      // Shadow
+      ctx.fillStyle = '#00000088';
+      ctx.fillRect(player.x + 2, player.y + 6, player.w, player.h);
+      // Body
+      ctx.fillStyle = '#e6002e';
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+      // Roof / Hood details
+      ctx.fillStyle = '#b30024';
+      ctx.fillRect(player.x + 4, player.y + 16, player.w - 8, player.h - 32);
+      // Windshield
+      ctx.fillStyle = '#00f5ff';
+      ctx.fillRect(player.x + 6, player.y + 12, player.w - 12, 10);
+      ctx.fillStyle = '#082b3d';
+      ctx.fillRect(player.x + 6, player.y + player.h - 20, player.w - 12, 6);
+      // Spoiler
+      ctx.fillStyle = '#181824';
+      ctx.fillRect(player.x + 2, player.y + player.h - 4, player.w - 4, 4);
+      // Glowing Taillights
+      ctx.fillStyle = '#ff0055';
+      ctx.fillRect(player.x + 4, player.y + player.h - 2, 7, 3);
+      ctx.fillRect(player.x + player.w - 11, player.y + player.h - 2, 7, 3);
+
+      // HUD Bar
       if (gameState === 'PLAYING') {
-        ctx.fillStyle = '#94a3b8';
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, canvas.width, 34);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(0, 34, canvas.width, 2);
+
         ctx.font = '10px "Press Start 2P", monospace';
-        ctx.fillText(`SCORE: ${score}`, 20, 24);
-        ctx.fillText(`WAVE: ${wave}`, canvas.width / 2 - 35, 24);
-        ctx.fillText(`LIVES: ${'♥ '.repeat(lives)}`, canvas.width - 140, 24);
+        ctx.fillStyle = '#facc15';
+        ctx.fillText(`${Math.floor(speed)} KM/H`, 15, 22);
+
+        ctx.fillStyle = '#00ffcc';
+        ctx.fillText(`SCORE: ${score}`, 180, 22);
+
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(`NITRO`, 380, 22);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(445, 12, 120, 12);
+        ctx.fillStyle = '#00f5ff';
+        ctx.fillRect(447, 14, (nitroFuel / 100) * 116, 8);
       }
     }
 
