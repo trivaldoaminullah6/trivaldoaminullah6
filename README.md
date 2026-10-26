@@ -15,27 +15,6 @@
 
 </div>
 
-```text
-╔═════════════════════════════════════════════════════════════════════════╗
-║  SCORE: 999990     STAGE: 01     LIVES: ♥ ♥ ♥     SHIELD: 100% [ONLINE] ║
-║                                                                         ║
-║         👾   👾   👾   👾   👾   👾   👾   👾   👾   👾               ║
-║           👾   👾   👾   👾   👾   👾   👾   👾   👾                 ║
-║             👾   👾   👾   👾   👾   👾   👾   👾                   ║
-║                                                                         ║
-║                              🛸 [BOSS ALIEN]                            ║
-║                                                                         ║
-║                                     !                                   ║
-║                                     !  <-- PLASMA LASER                 ║
-║                                    / \                                  ║
-║                                   /███\                                 ║
-║                                  |  █  |                                ║
-║                                 <═[🚀]═>  <-- PILOT: TRIVALDO           ║
-║                                  /     \                                ║
-║                                 (  🔥🔥 )                               ║
-╚═════════════════════════════════════════════════════════════════════════╝
-```
-
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" width="100%" alt="Divider" />
 
 ## 🛸 Flight Log & Mission Control
