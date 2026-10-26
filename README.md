@@ -59,12 +59,24 @@
 
 <div align="center">
 
-<img src="https://github-readme-stats.vercel.app/api?username=trivaldoaminullah6&show_icons=true&theme=tokyonight&hide_border=true&count_private=true" width="48%" alt="GitHub Stats" />
-<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=trivaldoaminullah6&layout=compact&theme=tokyonight&hide_border=true" width="48%" alt="Top Languages" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-stats.vercel.app/api?username=trivaldoaminullah6&show_icons=true&hide_border=false&border_color=30363d&border_radius=8&title_color=ffffff&text_color=ffffff&icon_color=00f5ff&bg_color=00000000&count_private=true">
+    <source media="(prefers-color-scheme: light)" srcset="https://github-readme-stats.vercel.app/api?username=trivaldoaminullah6&show_icons=true&hide_border=false&border_color=d0d7de&border_radius=8&title_color=1f2328&text_color=1f2328&icon_color=0969da&bg_color=00000000&count_private=true">
+    <img src="https://github-readme-stats.vercel.app/api?username=trivaldoaminullah6&show_icons=true&hide_border=false&border_color=30363d&border_radius=8&title_color=ffffff&text_color=ffffff&icon_color=00f5ff&bg_color=00000000&count_private=true" width="49%" alt="GitHub Stats" />
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-stats.vercel.app/api/top-langs/?username=trivaldoaminullah6&layout=compact&hide_border=false&border_color=30363d&border_radius=8&title_color=ffffff&text_color=ffffff&bg_color=00000000">
+    <source media="(prefers-color-scheme: light)" srcset="https://github-readme-stats.vercel.app/api/top-langs/?username=trivaldoaminullah6&layout=compact&hide_border=false&border_color=d0d7de&border_radius=8&title_color=1f2328&text_color=1f2328&bg_color=00000000">
+    <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=trivaldoaminullah6&layout=compact&hide_border=false&border_color=30363d&border_radius=8&title_color=ffffff&text_color=ffffff&bg_color=00000000" width="49%" alt="Top Languages" />
+  </picture>
 
-<br/>
+  <br/><br/>
 
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=trivaldoaminullah6&theme=tokyonight&hide_border=true" width="97%" alt="GitHub Streak" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-streak-stats.herokuapp.com/?user=trivaldoaminullah6&theme=transparent&background=00000000&border=30363d&stroke=30363d&ring=00f5ff&fire=00f5ff&currStreakLabel=ffffff&sideNums=ffffff&currStreakNum=ffffff&sideLabels=8b949e&dates=8b949e&border_radius=8">
+    <source media="(prefers-color-scheme: light)" srcset="https://github-readme-streak-stats.herokuapp.com/?user=trivaldoaminullah6&theme=transparent&background=00000000&border=d0d7de&stroke=d0d7de&ring=0969da&fire=0969da&currStreakLabel=1f2328&sideNums=1f2328&currStreakNum=1f2328&sideLabels=656d76&dates=656d76&border_radius=8">
+    <img src="https://github-readme-streak-stats.herokuapp.com/?user=trivaldoaminullah6&theme=transparent&background=00000000&border=30363d&stroke=30363d&ring=00f5ff&fire=00f5ff&currStreakLabel=ffffff&sideNums=ffffff&currStreakNum=ffffff&sideLabels=8b949e&dates=8b949e&border_radius=8" width="98%" alt="GitHub Streak" />
+  </picture>
 
 </div>
 
