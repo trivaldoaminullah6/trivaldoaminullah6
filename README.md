@@ -1,22 +1,3 @@
-<div align="center">
-
-<!-- Header Banner -->
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=0:0d1117,25:161b22,50:0969da,75:2f81f7,100:2ea043&height=180&section=header&text=TRIVALDO%20AMINULLAH&fontSize=42&fontColor=ffffff&animation=twinkling&fontAlignY=50" width="100%" alt="Header Banner" />
-
-<!-- Pixel Arcade Typing -->
-<a href="https://github.com/trivaldoaminullah6">
-  <img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=14&duration=2500&pause=1000&color=00FFD5&center=true&vCenter=true&width=650&lines=TRIVALDO+AMINULLAH;BACKEND+DEVELOPER;LARAVEL+SPECIALIST;INSERT+COIN+TO+CONTINUE..." alt="Typing SVG" />
-</a>
-
-<br/><br/>
-
-<!-- Continuous Motion Pixel Highway Car Racing -->
-<img src="assets/game.svg" width="100%" alt="Retro Pixel Car Highway Racing Game" />
-
-</div>
-
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" width="100%" alt="Divider" />
-
 ## Tech Stack
 
 <div align="center">
@@ -96,10 +77,4 @@
     <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
   </a>
 
-</div>
-
-<br/>
-
-<div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=0:2ea043,25:2f81f7,50:0969da,75:161b22,100:0d1117&height=120&section=footer" width="100%" alt="Footer Banner" />
 </div>
